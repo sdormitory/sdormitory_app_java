@@ -1,0 +1,8 @@
+cn\sdormitory\service\impl\UserTokenServiceImpl.class
+cn\sdormitory\service\AppUserService.class
+cn\sdormitory\config\CorsConfig.class
+cn\sdormitory\service\impl\AppUserServiceImpl.class
+cn\sdormitory\App.class
+cn\sdormitory\service\UserTokenService.class
+cn\sdormitory\config\SecurityConfig.class
+cn\sdormitory\controller\AppLoginController.class

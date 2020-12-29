@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.report.dao.HygieneStatisticsDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="cn.sdormitory.report.vo.HygieneStatisticsVO" id="hygieneStatisticsMap">
+        <result property="bdormitoryId" column="bdormitoryId"/>
+        <result property="buildingNo" column="buildingNo"/>
+        <result property="storey" column="storey"/>
+        <result property="dormitoryNo" column="dormitoryNo"/>
+        <result property="inYearMonth" column="inYearMonth"/>
+        <result property="avgScore" column="avgScore"/>
+
+    </resultMap>
+
+    <select id="getHygieneStaList" resultMap="hygieneStatisticsMap">
+SELECT * FROM(
+        SELECT b.`status`,b.id,
+  h.`check_date` AS inYearMonth,
+ (SELECT
+      sdd.`dict_label`
+    FROM
+      sys_dict_detail sdd
+    WHERE sdd.`dict_type` = 'sys_building'
+      AND sdd.`dict_value` =b.`building_no`) AS buildingNo,
+  (SELECT
+      sdd.`dict_label`
+    FROM
+      sys_dict_detail sdd
+    WHERE sdd.`dict_type` = 'sys_storey'
+      AND sdd.`dict_value` =b.`storey`) AS storey,
+  b.`dormitory_no` AS dormitoryNo,
+  ROUND(IFNULL(AVG(total_score), 0), 2) AS avgScore
+FROM
+  b_dormitory b
+  LEFT JOIN sd_hygiene h
+    ON b.`id` = h.`bdormitory_id`
+    AND h.`check_date` LIKE CONCAT('%', #{inYearMonth}, '%')
+GROUP BY b.id) AS b1 WHERE b1.status=1
+limit #{currIndex}, #{pageSize}
+    </select>
+
+
+
+</mapper>

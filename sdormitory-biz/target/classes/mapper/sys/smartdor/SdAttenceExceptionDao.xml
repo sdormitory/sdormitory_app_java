@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.smartdor.dao.SdAttenceExceptionDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="cn.sdormitory.smartdor.entity.SdAttenceException" id="sdAttenceExceptionMap">
+        <result property="id" column="id"/>
+        <result property="studentNo" column="student_no"/>
+        <result property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+        <result property="studentName" column="student_name"/>
+        <result property="absenceProcessStatus" column="absence_process_status"/>
+        <result property="processDesc" column="process_desc"/>
+        <result property="processPerson" column="process_person"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="dorAddress" column="dorAddress"/>
+    </resultMap>
+
+    <resultMap type="cn.sdormitory.smartdor.entity.SdAttenceException" id="sdAttenceExceptionList">
+        <result property="id" column="id"/>
+        <result property="studentNo" column="studentNo"/>
+        <result property="classId" column="classId"/>
+        <result property="className" column="className"/>
+        <result property="studentName" column="studentName"/>
+        <result property="absenceProcessStatus" column="absenceProcessStatus"/>
+        <result property="processDesc" column="processDesc"/>
+        <result property="processPerson" column="processPerson"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="createTime"/>
+        <result property="modifyTime" column="modifyTime"/>
+        <result property="dorAddress" column="dorAddress"/>
+    </resultMap>
+
+    <select id="getAttenceExceptionList" resultMap="sdAttenceExceptionList">
+        SELECT
+        ae.`id` AS id,
+        ae.`class_id` AS classId,
+        ae.`class_name` AS className,
+        ae.`student_no` AS studentNo,
+        ae.`student_name` AS studentName,
+        ae.`absence_process_status` AS absenceProcessStatus,
+        ae.`process_person` AS processPerson,
+        ae.`process_desc` AS processDesc,
+        ae.`status` AS STATUS,
+        ae.`create_time` AS createTime,
+        ae.`modify_time` AS modifyTime,
+        CONCAT(bu.dict_label,st.`dict_label`,ab.`dormitory_no`) dorAddress
+        FROM
+        sd_attence_exception ae
+        LEFT JOIN b_student ab ON ae.`student_no` = ab.`student_no`
+        LEFT JOIN sys_dict_detail bu ON bu.`dict_type`='sys_building' AND bu.`dict_value`=ab.`building_no`
+        LEFT JOIN sys_dict_detail st ON st.`dict_type`='sys_storey' AND st.`dict_value`=ab.`storey`
+        WHERE 1=1
+        <if test="studentNo != null and studentNo != ''">
+            AND ae.`student_no`= #{studentNo}
+        </if>
+        <if test="studentName != null and studentName != ''">
+            AND ae.`student_name`= #{studentName}
+        </if>
+        <if test="className != null and className != ''">
+            AND ae.class_name= #{className}
+        </if>
+        <if test="absenceProcessStatus != null and absenceProcessStatus != ''">
+            AND ae.absence_process_status= #{absenceProcessStatus}
+        </if>
+        <if test="status!= null and status != ''">
+            AND ae.status= #{status}
+        </if>
+        ORDER BY ae.`create_time` DESC
+        limit #{currIndex}, #{pageSize}
+    </select>
+
+    <select id="getByStuNoAndDate" resultType="cn.sdormitory.smartdor.entity.SdAttenceException">
+SELECT
+  *
+FROM
+  sd_attence_exception ae
+WHERE DATE_FORMAT(ae.`create_time`, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+AND ae.`student_no`=#{studentNo}
+    </select>
+
+    <select id="getExcByStuNoAndCreTime" resultType="cn.sdormitory.smartdor.entity.SdAttenceException">
+       SELECT
+  *
+FROM
+  sd_attence_exception ae
+WHERE ae.`student_no` = #{studentNo} AND DATE_FORMAT(ae.`create_time`, '%Y-%m-%d')=DATE_FORMAT(#{createTime}, '%Y-%m-%d')
+    </select>
+
+
+</mapper>

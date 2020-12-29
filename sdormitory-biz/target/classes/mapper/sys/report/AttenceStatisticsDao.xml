@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.report.dao.AttenceStatisticsDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="cn.sdormitory.report.vo.AttenceStatisticsVO" id="attenceStatisticsMap">
+        <result property="bdormitoryId" column="bdormitoryId"/>
+        <result property="buildingNo" column="buildingNo"/>
+        <result property="storey" column="storey"/>
+        <result property="dormitoryNo" column="dormitoryNo"/>
+        <result property="totalCount" column="totalCount"/>
+        <result property="normalAttenceCount" column="normalAttenceCount"/>
+        <result property="normalAttenceRate" column="normalAttenceRate"/>
+        <result property="accessDate" column="accessDate"/>
+
+    </resultMap>
+
+    <select id="getAttenceStaList" resultMap="attenceStatisticsMap">
+SELECT  a1.bdormitoryId AS bdormitoryId,a1.buildingNo AS buildingNo,a1.storey AS storey,a1.dormitoryNo AS dormitoryNo,b1.totalCount AS totalCount,a1.normalAttenceCount AS normalAttenceCount,
+(SELECT CONCAT(ROUND(a1.normalAttenceCount/b1.totalCount*100,2),'%')) AS normalAttenceRate,
+IFNULL(STR_TO_DATE(a1.accessDate, '%Y-%m-%d'),#{accDate}) AS accessDate
+ FROM (
+
+  SELECT
+       b.bdormitory_id  AS bdormitoryId,
+       (SELECT
+       sdd.`dict_label`
+     FROM
+       sys_dict_detail sdd
+     WHERE sdd.`dict_type` = 'sys_building'
+      AND sdd.`dict_value` =b.`building_no`) AS buildingNo,
+      (SELECT
+       sdd.`dict_label`
+     FROM
+       sys_dict_detail sdd
+     WHERE sdd.`dict_type` = 'sys_storey'
+       AND sdd.`dict_value` =b.`storey`) AS storey,
+       b.`dormitory_no` AS dormitoryNo,
+       COUNT(sd.student_no ) normalAttenceCount ,
+       sd.`access_date` AS accessDate
+  FROM
+        b_student b LEFT JOIN sd_attence sd
+  ON
+       sd.student_no = b.student_no
+  AND
+      attence_status = 1
+  AND
+      sd.access_date LIKE CONCAT('%',#{accDate}, '%')
+  GROUP BY
+      b.bdormitory_id
+      ) a1
+      INNER JOIN
+  (
+  SELECT
+    COUNT(b.id) AS totalCount , COUNT(b.id)*(
+      SELECT
+     COUNT(DISTINCT (STR_TO_DATE(s.`access_date`, '%Y-%m-%d')))
+      FROM
+     sd_attence s
+      WHERE
+     s.access_date LIKE CONCAT('%',#{accDate}, '%')) AS 总出勤数, b.bdormitory_id,b.status
+      FROM
+    b_student b GROUP BY b.bdormitory_id
+  )
+  b1
+  WHERE a1.bdormitoryId = b1.bdormitory_id and b1.status=1
+limit #{currIndex}, #{pageSize}
+    </select>
+
+</mapper>

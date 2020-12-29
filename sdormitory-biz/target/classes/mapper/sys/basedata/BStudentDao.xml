@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.basedata.dao.BStudentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="cn.sdormitory.basedata.entity.BStudent" id="bStudentMap">
+        <result property="id" column="id"/>
+        <result property="studentName" column="student_name"/>
+        <result property="studentPassword" column="student_password"/>
+        <result property="studentNo" column="student_no"/>
+        <result property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+        <result property="phone" column="phone"/>
+        <result property="idcard" column="idcard"/>
+        <result property="sex" column="sex"/>
+        <result property="age" column="age"/>
+        <result property="parentName" column="parent_name"/>
+        <result property="parentPhone" column="parent_phone"/>
+        <result property="parentPassword" column="parent_password"/>
+        <result property="buildingNo" column="building_no"/>
+        <result property="storey" column="storey"/>
+        <result property="bdormitoryId" column="bdormitory_id"/>
+        <result property="dormitoryNo" column="dormitory_no"/>
+        <result property="photo" column="photo"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modifyTime" column="modify_time"/>
+        <result property="classTeacherName" column="classTeacherName"/>
+    </resultMap>
+
+    <!--APP端学员登录-->
+    <select id="doLoginStudent" resultType="cn.sdormitory.basedata.entity.BStudent">
+        select * from b_student bs where bs.`status`=1 and bs.`phone` = #{phone}
+    </select>
+
+    <!--APP端家长登录-->
+    <select id="doLoginParent" resultType="cn.sdormitory.basedata.entity.BStudent">
+        select * from b_student bs where bs.`status`=1 and bs.`parent_phone` = #{parentPhone}
+    </select>
+
+    <select id="getStuPassword" resultType="String">
+        SELECT bs.`student_password` FROM b_student bs WHERE id = #{id}
+    </select>
+
+    <update id="updateStuPassword" >
+        UPDATE b_student SET student_password=#{newPassword} WHERE id = #{id}
+    </update>
+
+    <select id="getParPassword" resultType="String">
+        SELECT bs.`parent_password` FROM b_student bs WHERE id = #{id}
+    </select>
+
+    <update id="updateParPassword" >
+        UPDATE b_student SET parent_password=#{newPassword} WHERE id = #{id}
+    </update>
+
+
+</mapper>

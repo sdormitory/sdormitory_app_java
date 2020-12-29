@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.report.dao.ExcellentDorStaDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="cn.sdormitory.report.vo.ExcellentDorStaVO" id="excellentDorStaMap">
+        <result property="bdormitoryId" column="bdormitoryId"/>
+        <result property="buildingNo" column="buildingNo"/>
+        <result property="storey" column="storey"/>
+        <result property="dormitoryNo" column="dormitoryNo"/>
+        <result property="avgScore" column="avgScore"/>
+        <result property="avgNormalAttenceRate" column="avgNormalAttenceRate"/>
+        <result property="inMonth" column="inMonth"/>
+        <result property="ranking" column="ranking"/>
+    </resultMap>
+
+    <select id="getExcDorStaList" resultMap="excellentDorStaMap">
+SELECT * FROM(
+SELECT t1.status,t1.id,t1.inYearMonth, IFNULL(DATE_FORMAT(t1.inYearMonth,'%Y-%m'),#{inMonth}) AS inMonth,t1.storey,t1.dormitoryNo,t1.buildingNo,t1.avgScore, t2.宿舍ID,t2.正常出勤数量,t2.总人数,t2.总出勤数,IFNULL(t2.avgNormalAttenceRate,'0.00%') AS avgNormalAttenceRate,t2.bdormitory_id
+FROM
+(
+ SELECT
+   b.`status`,
+   b.id,
+   h.`check_date` AS inYearMonth,
+   (SELECT
+       sdd.`dict_label`
+     FROM
+       sys_dict_detail sdd
+     WHERE sdd.`dict_type` = 'sys_building'
+      AND sdd.`dict_value` =b.`building_no`) AS buildingNo,
+   (SELECT
+       sdd.`dict_label`
+     FROM
+       sys_dict_detail sdd
+     WHERE sdd.`dict_type` = 'sys_storey'
+       AND sdd.`dict_value` =b.`storey`) AS storey,
+   b.`dormitory_no` AS dormitoryNo,
+   ROUND(IFNULL(AVG(total_score), 0), 2) AS avgScore
+ FROM
+   b_dormitory b
+   LEFT JOIN sd_hygiene h
+     ON b.`id` = h.`bdormitory_id`
+     AND h.`check_date` LIKE CONCAT('%', #{inMonth}, '%')
+ GROUP BY b.id
+)
+  t1
+
+  LEFT JOIN
+
+  (
+ SELECT  a1.宿舍ID,b1.总人数,a1.正常出勤数量,b1.总出勤数,(SELECT CONCAT(ROUND(a1.正常出勤数量/b1.总出勤数*100,2),'%')) AS avgNormalAttenceRate ,b1.bdormitory_id
+ FROM (
+
+  SELECT
+       b.bdormitory_id  AS 宿舍ID ,COUNT(sd.student_no ) 正常出勤数量
+  FROM
+        b_student b LEFT JOIN sd_attence sd
+  ON
+       sd.student_no = b.student_no
+  AND
+      attence_status = 1
+  AND
+      sd.access_date LIKE CONCAT('%', #{inMonth}, '%')
+  GROUP BY
+      b.bdormitory_id
+      ) a1
+      INNER JOIN
+  (
+  SELECT
+    COUNT(b.id) AS 总人数 , COUNT(b.id)*(
+      SELECT
+     COUNT(DISTINCT (STR_TO_DATE(s.`access_date`, '%Y-%m-%d')))
+      FROM
+     sd_attence s
+      WHERE
+     s.access_date LIKE CONCAT('%',#{inMonth}, '%')) AS 总出勤数, b.bdormitory_id
+      FROM
+    b_student b GROUP BY b.bdormitory_id
+  )
+  b1
+  WHERE a1.宿舍ID = b1.bdormitory_id
+ ) t2
+  ON t1.id = t2.宿舍ID
+  ORDER BY t1.avgScore DESC ,t2.avgNormalAttenceRate DESC) AS t3 WHERE t3.status=1
+
+limit #{currIndex}, #{pageSize}
+    </select>
+
+
+
+</mapper>

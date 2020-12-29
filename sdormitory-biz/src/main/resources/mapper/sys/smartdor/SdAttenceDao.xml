@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.sdormitory.smartdor.dao.SdAttenceDao">
+
+    <resultMap id="sdAttenceMap" type="cn.sdormitory.smartdor.entity.SdAttence">
+        <result property="id" column="sid"/>
+        <result property="deviceNo" column="sdevice_no"/>
+        <result property="studentNo" column="sstudent_no"/>
+        <result property="accessDate" column="saccess_date"/>
+        <result property="studentName" column="sstudent_name"/>
+        <result property="attenceStatus" column="sattence_status"/>
+        <result property="absenceProcessStatus" column="sabsence_process_status"/>
+        <result property="processPerson" column="sprocess_person"/>
+        <result property="processDesc" column="sprocess_desc"/>
+        <result property="createTime" column="screate_time"/>
+        <result property="modifyTime" column="smodify_time"/>
+        <result property="className" column="className"/>
+    </resultMap>
+
+    <select id="getList" resultMap="sdAttenceMap">
+        SELECT sa.id sid,sa.device_no sdevice_no,sa.access_date saccess_date,sa.attence_status sattence_status,sa.student_no sstudent_no,
+        sa.absence_process_status sabsence_process_status,sa.process_person sprocess_person,
+        sa.process_desc sprocess_desc,sa.create_time screate_time,sa.modify_time smodify_time,bs.student_name sstudent_name,bs.`class_name` className
+        FROM sd_attence sa
+        LEFT JOIN b_student bs ON sa.student_no = bs.student_no
+        where 1=1
+        <if test="date != null and date != '' ">
+            and DATE_FORMAT(access_date,'%Y-%m-%d')  =DATE_FORMAT(#{date},'%Y-%m-%d')
+        </if>
+        order by sa.access_date desc
+        limit #{currIndex},#{pageSize}
+    </select>
+
+    <select id="getListCount"  resultType="int">
+        SELECT count(1)
+        FROM sd_attence sa
+        LEFT JOIN b_student bs ON sa.student_no = bs.student_no
+        where 1=1
+        <if test="date != null and date != '' ">
+            and DATE_FORMAT(access_date,'%Y-%m-%d')  = DATE_FORMAT(#{date},'%Y-%m-%d')
+        </if>
+    </select>
+
+    <select id="listAbsenceStudent" resultType="cn.sdormitory.smartdor.vo.SdAttenceVo" parameterType="Map">
+        SELECT a.`id` id,s.`student_name` studentName,CONCAT(bu.dict_label,st.`dict_label`,d.`dormitory_no`) dorAddress
+
+        FROM sd_attence a
+        LEFT JOIN b_student s ON a.`student_no` = s.`student_no`
+        LEFT JOIN b_dormitory d ON s.`bdormitory_id` = d.`id`
+        LEFT JOIN sys_dict_detail bu ON bu.`dict_type`='sys_building' AND bu.`dict_value`=s.`building_no`
+        LEFT JOIN sys_dict_detail st ON st.`dict_type`='sys_storey' AND st.`dict_value`=s.`storey`
+        WHERE a.`attence_status` = 2
+        <if test="building != null and building != ''">
+            AND s.`building_no` = #{building}
+        </if>
+
+        <if test="storey != null and storey != ''">
+            AND st.`dict_value` = #{storey}
+        </if>
+
+        <if test="bdormitory != null and bdormitory != ''">
+            AND s.`dormitory_no` =#{bdormitory}
+        </if>
+
+        <if test="checkDate != null">
+            AND DATE_FORMAT(a.`access_date`,'%Y-%m-%d') =  DATE_FORMAT(#{checkDate},'%Y-%m-%d')
+        </if>
+
+    </select>
+
+    <select id="dormitoryAttenceVos" resultType="cn.sdormitory.smartdor.vo.DormitoryAttenceVo" parameterType="Map">
+        SELECT d.`id` id,( SELECT COUNT(1)  FROM b_student bs WHERE  bs.bdormitory_id=d.id)total ,CONCAT(bu.dict_label,st.`dict_label`,d.`dormitory_no`) roomName,
+        COUNT(
+        (SELECT
+        sd.dict_label
+        FROM
+        sys_dict_detail sd
+        WHERE sd.dict_type = 'attence_status'
+        AND dict_value = attc.`attence_status` AND sd.dict_value=1)
+        ) AS  normal,
+        COUNT(
+        (SELECT
+        sd.dict_label
+        FROM
+        sys_dict_detail sd
+        WHERE sd.dict_type = 'attence_status'
+        AND dict_value = attc.`attence_status` AND sd.dict_value=2)
+        ) AS  absence,
+        COUNT(
+        (SELECT
+        sd.dict_label
+        FROM
+        sys_dict_detail sd
+        WHERE sd.dict_type = 'attence_status'
+        AND dict_value = attc.`attence_status` AND sd.dict_value=3)
+        ) AS  comebacklate,
+        COUNT(
+        (SELECT
+        sd.dict_label
+        FROM
+        sys_dict_detail sd
+        WHERE sd.dict_type = 'attence_status'
+        AND dict_value = attc.`attence_status` AND sd.dict_value=4)
+        ) AS  leaveCount,
+        GROUP_CONCAT((SELECT sd.dict_label FROM sys_dict_detail sd WHERE sd.dict_type='attence_status' AND dict_value=attc.`attence_status`)) AS attenceStatus
+        FROM b_dormitory d
+        LEFT JOIN sys_dict_detail bu ON bu.`dict_type`='sys_building'
+        LEFT JOIN sys_dict_detail st ON st.`dict_type`='sys_storey'
+        LEFT JOIN b_student s ON s.`bdormitory_id` = d.`id` AND s.`building_no` = bu.`dict_value` AND s.`storey` = st.`dict_value`
+        LEFT JOIN sd_attence attc ON attc.`student_no` = s.`student_no`
+        WHERE 1=1
+        <if test="building != null and building != ''">
+            AND s.building_no = #{building}
+        </if>
+
+        <if test="storey != null and storey != ''">
+            AND st.`dict_value` = #{storey}
+        </if>
+        <if test="bdormitory != null and bdormitory != ''">
+            AND d.`dormitory_no` = #{bdormitory}
+        </if>
+
+        <if test="checkDate != null">
+            AND DATE_FORMAT(attc.`access_date`,'%Y-%m-%d') = DATE_FORMAT( #{checkDate},'%Y-%m-%d')
+        </if>
+        GROUP BY d.`id`
+    </select>
+
+    <select id="getLackStu" resultType="cn.sdormitory.smartdor.vo.SdAttenceVo">
+            SELECT s.student_no,
+             s.`student_name`
+            FROM b_student s
+            WHERE s.student_no NOT IN (SELECT student_no
+                                        FROM sd_attence  s
+                                        WHERE DATE_FORMAT(s.access_date,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') AND (s.attence_status=1 OR s.attence_status=3 OR s.attence_status=4)
+                                        GROUP BY s.student_no
+                                        HAVING MAX(access_date) >	CONCAT(DATE_FORMAT(NOW(),'%Y-%m-%d'),' ','18:00:00')
+                                        )
+    </select>
+
+    <select id="getCombacklate" resultType="cn.sdormitory.smartdor.entity.SdAttence">
+        SELECT
+  *
+FROM
+  sd_attence sa
+WHERE sa.`student_no` = #{studentNo}
+  AND sa.`access_date`> #{accessDate}
+  AND sa.`attence_status`=3
+    </select>
+
+</mapper>

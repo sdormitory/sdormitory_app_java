@@ -1,0 +1,17 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: 9003
+
+
+spring:
+  # 环境 dev|test|prod
+  profiles:
+    active: dev
+#    active: prod
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: ../logs/sdormitory-platform

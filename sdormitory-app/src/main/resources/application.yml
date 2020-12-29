@@ -1,0 +1,25 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+  port: 9004
+
+
+spring:
+  # 环境 dev|test|prod
+  profiles:
+    active: dev
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 912738803@qq.com
+    password: xtfagaoocukubcjc
+    default-encoding: utf-8
+    properties:
+      mail:
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+        debug: true
