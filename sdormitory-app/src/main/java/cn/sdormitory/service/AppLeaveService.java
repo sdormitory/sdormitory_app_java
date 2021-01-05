@@ -16,4 +16,9 @@ public interface AppLeaveService {
 
     SdLeave getLeaveById(Long id);
 
+    int saveLeave(SdLeave sdLeave);
+
+    int auditLeave(SdLeave sdLeave);
+
+    int modifyLeave(SdLeave sdLeave);
 }

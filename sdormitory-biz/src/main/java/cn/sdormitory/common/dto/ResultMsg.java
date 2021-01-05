@@ -41,6 +41,9 @@ public class ResultMsg implements Serializable {
     public static ResultMsg BY_SUCCESS(String msg,Object data){
         return new ResultMsg(ResultMsg.EX_SUCCESS,msg,data);
     }
+    public static ResultMsg BY_SUCCESS(String msg){
+        return new ResultMsg(ResultMsg.EX_SUCCESS,msg,null);
+    }
 
     public static ResultMsg BY_ERROR(String msg,Object data){
         return new ResultMsg(ResultMsg.EX_ERROR,msg,data);

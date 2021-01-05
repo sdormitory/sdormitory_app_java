@@ -3,6 +3,7 @@ package cn.sdormitory.service.impl;
 import cn.sdormitory.basedata.dao.BStudentDao;
 import cn.sdormitory.basedata.entity.BStudent;
 import cn.sdormitory.service.AppStudentService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,11 @@ public class AppStudentServiceImpl extends ServiceImpl<BStudentDao, BStudent> im
     @Override
     public BStudent getStudentById(int id) {
         return bStudentDao.selectById(id);
+    }
+
+    @Override
+    public BStudent getStudentByNo(String studentNo) {
+        return this.baseMapper.selectOne(new LambdaQueryWrapper<BStudent>().eq(BStudent::getStudentNo, studentNo));
     }
 
     @Override

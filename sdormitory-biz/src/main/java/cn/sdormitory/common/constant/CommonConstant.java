@@ -97,6 +97,12 @@ public class CommonConstant {
     /**短信模板类型----->考勤异常*/
     public static final int SMS_TEMPLATE_TYPE_ATTENCE=0;
 
+    /**短信模板类型----->申请请假*/
+    public static final int SMS_TEMPLATE_TYPE_LEAVE=1;
+
+    /**短信模板类型----->申请请假通过*/
+    public static final int SMS_TEMPLATE_TYPE_LEAVE_PASS=3;
+
     /**考勤规则类型----->正常1*/
     public static final String ATTENCE_NOMAL="1";
 
@@ -105,6 +111,9 @@ public class CommonConstant {
 
     /**请假状态----->家长确认通过2*/
     public static final String PARENT_CONFIRE_PASS="2";
+
+    /**请假状态----->班主任确认通过2*/
+    public static final String TEACHER_CONFIRE_PASS="3";
 
     /**
      * 考勤时间整数22:00:00
@@ -117,5 +126,8 @@ public class CommonConstant {
     public static final String TOKEN_USER = "appuser";
     public static final String TOKEN_STUDENT = "appstudent";
     public static final String TOKEN_PARENT = "appparent";
+
+    //请假申请初始状态为家长确认中
+    public static final String  INIT_LEAVE_STATUS= "1";
 
 }
